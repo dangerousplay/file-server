@@ -1,0 +1,76 @@
+//
+// Created by intellij-pest on 2021-09-09
+// protocol
+// Author: davi_henrique
+//
+
+protocol = { "Hello World!" }
+
+assignment_operator = { "=" }
+opening_brace       = { "{" }
+closing_brace       = { "}" }
+opening_paren       = { "(" }
+closing_paren       = { ")" }
+opening_brack       = { "[" }
+closing_brack       = { "]" }
+
+positive_predicate_operator = { "&" }
+negative_predicate_operator = { "!" }
+sequence_operator           = { "~" }
+choice_operator             = { "|" }
+optional_operator           = { "?" }
+repeat_operator             = { "*" }
+repeat_once_operator        = { "+" }
+
+repeat_exact   = { opening_brace ~ number ~ closing_brace }
+repeat_min     = { opening_brace ~ number ~ comma ~ closing_brace }
+repeat_max     = { opening_brace ~ comma ~ number ~ closing_brace }
+repeat_min_max = { opening_brace ~ number ~ comma ~ number ~ closing_brace }
+
+number = @{ '0'..'9'+ }
+integer = @{ number | "-" ~ "0"* ~ '1'..'9' ~ number? }
+
+comma = _{ "," }
+
+alpha      = _{ 'a'..'z' | 'A'..'Z' }
+alpha_num  = _{ alpha | '0'..'9' }
+space = _{ " " }
+
+string             = { quote ~ inner_str ~ quote }
+character          = ${ single_quote ~ inner_chr ~ single_quote }
+list_string = { (string ~ ( comma ~ string )* )}
+
+inner_str = @{ (!("\"" | "\\") ~ ANY)* ~ (escape ~ inner_str)? }
+inner_chr = @{ escape | ANY }
+// escape    = @{ "\\" ~ ("\"" | "\\" | "r" | "n" | "t" | "0" | "'" | code | unicode) }
+escape    = @{ "\\" ~ ("\"" | "\\" ) }
+code      = @{ "x" ~ hex_digit{2} }
+unicode   = @{ "u" ~ opening_brace ~ hex_digit{2, 6} ~ closing_brace }
+hex_digit = @{ '0'..'9' | 'a'..'f' | 'A'..'F' }
+
+quote          = _{ "\"" }
+single_quote   = _{ "'" }
+
+newline    = _{ "\n" | "\r\n" }
+
+operation_error_name = _{ "ERROR" }
+operation_error = { operation_error_name ~ space ~ string }
+
+operation_success = _{ "OK" }
+
+get_operation_name  = _{ "GET"  }
+list_operation_name = _{ "LIST" }
+
+get_operation = { get_operation_name ~ space ~ string }
+list_operation = { list_operation_name }
+
+operation = { get_operation | list_operation }
+
+get_operation_response = { "GET" ~ space ~ string }
+list_operation_response = { "LIST" ~ space ~ list_string }
+
+operation_response = {
+operation_error | (operation_success ~ space ~
+ (get_operation_response | list_operation_response)
+)
+}
